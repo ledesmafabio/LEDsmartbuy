@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>CompraFácil</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Escáner de Código de Barras -->
+    <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+    
+    <!-- Firebase (Reemplazar con tu configuración) -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
+
+    <style>
+        /* Estilos SPA - Ocultar pantallas inactivas */
+        .screen { display: none; height: 100vh; overflow-y: auto; padding-bottom: 80px; }
+        .screen.active { display: block; }
+        
+        /* Estilo móvil portrait */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f3f4f6;
+            max-width: 100vw;
+            overflow-x: hidden;
+        }
+
+        /* Escáner styling */
+        #reader { width: 100%; }
+        #reader video { width: 100% !important; border-radius: 12px; }
+        #reader img { display: none; } /* Ocultar imagen fea por defecto de la librería */
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800">
+
+    <!-- ================= PANTALLA BIENVENIDA ================= -->
+    <div id="screen-welcome" class="screen active flex flex-col items-center justify-center p-6 bg-gradient-to-br from-blue-500 to-purple-600 text-white">
+        <img id="app-logo" src="https://via.placeholder.com/150?text=Logo" alt="Logo App" class="w-32 h-32 rounded-full mb-8 shadow-lg object-cover">
+        <h1 class="text-3xl font-bold mb-2">CompraFácil</h1>
+        <p class="mb-8 text-blue-100">Gestión de compras familiares</p>
+        
+        <button onclick="googleLogin()" class="w-full bg-white text-gray-800 font-bold py-3 px-4 rounded-xl flex items-center justify-center gap-3 shadow-md mb-4">
+            <i class="fab fa-google"></i> Ingresar con Google
+        </button>
+        <button class="w-full bg-transparent border-2 border-white text-white font-bold py-3 px-4 rounded-xl">
+            <i class="fas fa-envelope"></i> Ingresar con Email
+        </button>
+    </div>
+
+    <!-- ================= PANTALLA PRINCIPAL ================= -->
+    <div id="screen-home" class="screen p-6">
+        <header class="flex justify-between items-center mb-8">
+            <div>
+                <h2 class="text-2xl font-bold">Hola, <span id="user-name">Usuario</span></h2>
+                <p class="text-gray-500">¿Qué haremos hoy?</p>
+            </div>
+            <img id="user-photo" src="https://via.placeholder.com/40" class="w-10 h-10 rounded-full">
+        </header>
+
+        <div class="grid grid-cols-2 gap-4">
+            <button onclick="navigate('screen-new-purchase')" class="bg-blue-600 text-white p-6 rounded-2xl shadow-md flex flex-col items-center justify-center gap-2 active:scale-95 transition">
+                <i class="fas fa-cart-plus text-3xl"></i>
+                <span class="font-semibold">Nueva Compra</span>
+            </button>
+            <button onclick="navigate('screen-saved-purchases')" class="bg-green-600 text-white p-6 rounded-2xl shadow-md flex flex-col items-center justify-center gap-2 active:scale-95 transition">
+                <i class="fas fa-list-alt text-3xl"></i>
+                <span class="font-semibold">Guardadas</span>
+            </button>
+            <button onclick="navigate('screen-products')" class="bg-orange-500 text-white p-6 rounded-2xl shadow-md flex flex-col items-center justify-center gap-2 active:scale-95 transition">
+                <i class="fas fa-boxes text-3xl"></i>
+                <span class="font-semibold">Productos</span>
+            </button>
+            <button onclick="navigate('screen-settings')" class="bg-gray-700 text-white p-6 rounded-2xl shadow-md flex flex-col items-center justify-center gap-2 active:scale-95 transition">
+                <i class="fas fa-cog text-3xl"></i>
+                <span class="font-semibold">Configuración</span>
+            </button>
+        </div>
+        
+        <!-- Extra: Comparador -->
+        <button onclick="navigate('screen-compare')" class="w-full mt-6 bg-purple-600 text-white p-4 rounded-2xl shadow flex items-center justify-center gap-3 active:scale-95 transition">
+            <i class="fas fa-balance-scale text-xl"></i> Comparar Precios
+        </button>
+    </div>
+
+    <!-- ================= PANTALLA NUEVA COMPRA ================= -->
+    <div id="screen-new-purchase" class="screen p-6">
+        <div class="flex items-center gap-4 mb-6">
+            <button onclick="navigate('screen-home')" class="text-blue-600"><i class="fas fa-arrow-left text-xl"></i></button>
+            <h2 class="text-2xl font-bold">Nueva Compra</h2>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl shadow-sm mb-4">
+            <input type="text" placeholder="Supermercado (Ej: Coto)" class="w-full border-b pb-2 mb-4 outline-none font-semibold">
+            <div class="flex gap-4">
+                <select id="currency-select" class="border p-2 rounded-lg w-1/2">
+                    <option value="ARS">AR$</option>
+                    <option value="USD">U$D</option>
+                    <option value="BRL">BR$</option>
+                </select>
+                <input type="number" placeholder="Límite (Opcional)" class="border p-2 rounded-lg w-1/2 outline-none">
+            </div>
+        </div>
+
+        <!-- Escáner -->
+        <div class="bg-white p-4 rounded-xl shadow-sm mb-4">
+            <button onclick="toggleScanner('purchase-scanner')" class="w-full bg-blue-600 text-white py-3 rounded-xl font-bold mb-2"><i class="fas fa-barcode"></i> Escanear Código</button>
+            <div id="purchase-scanner" class="hidden rounded-xl overflow-hidden mt-4"></div>
+        </div>
+
+        <!-- Lista de productos actuales -->
+        <div class="bg-white p-4 rounded-xl shadow-sm mb-4">
+            <h3 class="font-bold text-lg mb-4">Productos en carrito</h3>
+            <div id="cart-items" class="space-y-3">
+                <!-- Items se inyectan aquí -->
+                <div class="text-center text-gray-400 py-4"><i class="fas fa-shopping-basket text-3xl mb-2"></i><p>Lista vacía</p></div>
+            </div>
+        </div>
+
+        <!-- Total y acciones -->
+        <div class="bg-blue-50 border-l-4 border-blue-500 p-4 rounded-r-xl mb-6">
+            <div class="flex justify-between items-center text-xl font-bold text-blue-800">
+                <span>TOTAL:</span>
+                <span id="cart-total">AR$ 0.00</span>
+            </div>
+        </div>
+
+        <div class="flex gap-4">
+            <button class="w-1/2 bg-green-600 text-white py-3 rounded-xl font-bold active:scale-95 transition"><i class="fas fa-save"></i> Guardar</button>
+            <button onclick="navigate('screen-saved-purchases')" class="w-1/2 bg-gray-200 text-gray-700 py-3 rounded-xl font-bold active:scale-95 transition"><i class="fas fa-folder-open"></i> Ver Guardadas</button>
+        </div>
+    </div>
+
+    <!-- ================= PANTALLA COMPRAS GUARDADAS ================= -->
+    <div id="screen-saved-purchases" class="screen p-6">
+        <div class="flex items-center gap-4 mb-6">
+            <button onclick="navigate('screen-home')" class="text-blue-600"><i class="fas fa-arrow-left text-xl"></i></button>
+            <h2 class="text-2xl font-bold">Compras Guardadas</h2>
+        </div>
+
+        <div class="flex gap-2 mb-4">
+            <select class="border p-2 rounded-lg w-1/2 bg-white"><option>Ordenar por Fecha</option><option>Ordenar por Super</option></select>
+            <input type="text" placeholder="Filtrar..." class="border p-2 rounded-lg w-1/2 bg-white">
+        </div>
+
+        <div class="space-y-3">
+            <!-- Ejemplo de compra guardada -->
+            <div class="bg-white p-4 rounded-xl shadow-sm flex justify-between items-center">
+                <div>
+                    <h4 class="font-bold">Coto</h4>
+                    <p class="text-sm text-gray-500">12/03/2024 - 5 items</p>
+                    <p class="text-blue-600 font-bold">AR$ 25.500</p>
+                </div>
+                <button onclick="navigate('screen-new-purchase')" class="bg-blue-100 text-blue-600 px-4 py-2 rounded-lg font-semibold"><i class="fas fa-folder-open"></i> Abrir</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= PANTALLA GESTIÓN PRODUCTOS ================= -->
+    <div id="screen-products" class="screen p-6">
+        <div class="flex items-center gap-4 mb-6">
+            <button onclick="navigate('screen-home')" class="text-blue-600"><i class="fas fa-arrow-left text-xl"></i></button>
+            <h2 class="text-2xl font-bold">Productos</h2>
+        </div>
+
+        <div class="flex gap-2 mb-4">
+            <input type="text" placeholder="Buscar producto..." class="border p-2 rounded-lg w-full bg-white">
+            <button onclick="toggleScanner('product-scanner')" class="bg-blue-600 text-white px-4 rounded-lg"><i class="fas fa-barcode"></i></button>
+        </div>
+        <div id="product-scanner" class="hidden rounded-xl overflow-hidden mb-4"></div>
+
+        <button onclick="showProductModal()" class="w-full bg-orange-500 text-white py-3 rounded-xl font-bold mb-4 active:scale-95 transition"><i class="fas fa-plus"></i> Agregar Nuevo</button>
+
+        <div class="space-y-3">
+            <!-- Ejemplo de producto -->
+            <div onclick="showProductModal('Leche 1L', 'Descripción', 1200, '7791234')" class="bg-white p-4 rounded-xl shadow-sm cursor-pointer active:bg-gray-50">
+                <div class="flex justify-between">
+                    <h4 class="font-bold">Leche 1L</h4>
+                    <span class="font-bold text-green-600">AR$ 1.200</span>
+                </div>
+                <p class="text-xs text-gray-400 mt-1">Código: 779123456789</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= PANTALLA CONFIGURACIÓN ================= -->
+    <div id="screen-settings" class="screen p-6">
+        <div class="flex items-center gap-4 mb-6">
+            <button onclick="navigate('screen-home')" class="text-blue-600"><i class="fas fa-arrow-left text-xl"></i></button>
+            <h2 class="text-2xl font-bold">Configuración</h2>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl shadow-sm mb-4 flex items-center gap-4">
+            <img src="https://via.placeholder.com/60" class="w-16 h-16 rounded-full">
+            <div>
+                <h3 class="font-bold text-lg" id="settings-name">Nombre Apellido</h3>
+                <p class="text-gray-500 text-sm">usuario@email.com</p>
+                <p class="text-gray-400 text-xs">+54 11 1234-5678</p>
+            </div>
+        </div>
+
+        <div class="bg-white p-4 rounded-xl shadow-sm mb-4 space-y-4">
+            <h4 class="font-bold border-b pb-2">General</h4>
+            <div class="flex justify-between items-center">
+                <span>Moneda por defecto</span>
+                <select class="border p-1 rounded"><option>AR$</option><option>U$D</option><option>BR$</option></select>
+            </div>
+            <div class="flex justify-between items-center">
+                <span>Cotización U$D a AR$</span>
+                <input type="number" placeholder="870" class="border p-1 w-24 rounded text-right">
+            </div>
+            <button class="text-blue-600 text-sm font-semibold"><i class="fas fa-sync"></i> Actualizar cotización online</button>
+            <div class="flex justify-between items-center">
+                <span>Logo de la App</span>
+                <button class="bg-gray-200 px-3 py-1 rounded text-sm">Subir Imagen</button>
+            </div>
+        </div>
+
+        <button class="w-full bg-red-100 text-red-600 py-3 rounded-xl font-bold mt-4"><i class="fas fa-trash"></i> Eliminar Cuenta</button>
+    </div>
+
+    <!-- ================= PANTALLA COMPARADOR (EXTRA) ================= -->
+    <div id="screen-compare" class="screen p-6">
+        <div class="flex items-center gap-4 mb-6">
+            <button onclick="navigate('screen-home')" class="text-blue-600"><i class="fas fa-arrow-left text-xl"></i></button>
+            <h2 class="text-2xl font-bold">Comparar Precios</h2>
+        </div>
+        <p class="text-gray-500 mb-4">Busca un producto y compara en qué supermercado es más barato.</p>
+        <input type="text" placeholder="Escanear o buscar producto..." class="w-full border p-3 rounded-xl mb-4 bg-white">
+        
+        <div class="bg-white p-4 rounded-xl shadow-sm">
+            <h3 class="font-bold mb-3">Leche 1L</h3>
+            <div class="space-y-2">
+                <div class="flex justify-between p-2 bg-green-50 rounded-lg border border-green-200">
+                    <span class="font-semibold">Dia</span>
+                    <span class="font-bold text-green-700">AR$ 1.100</span>
+                </div>
+                <div class="flex justify-between p-2 bg-white rounded-lg border">
+                    <span class="font-semibold">Coto</span>
+                    <span class="font-bold">AR$ 1.250</span>
+                </div>
+                <div class="flex justify-between p-2 bg-white rounded-lg border">
+                    <span class="font-semibold">Carrefour</span>
+                    <span class="font-bold">AR$ 1.300</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= MODAL PRODUCTO (POPUP) ================= -->
+    <div id="product-modal" class="hidden fixed inset-0 bg-black bg-opacity-50 z-50 flex items-center justify-center p-6">
+        <div class="bg-white w-full rounded-2xl p-6 shadow-2xl">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold">Producto</h3>
+                <button onclick="closeProductModal()" class="text-gray-400"><i class="fas fa-times text-xl"></i></button>
+            </div>
+            <input type="text" placeholder="Código de barras" class="w-full border p-2 rounded mb-3 bg-gray-50" id="modal-barcode">
+            <input type="text" placeholder="Nombre del producto" class="w-full border p-2 rounded mb-3" id="modal-name">
+            <input type="text" placeholder="Descripción" class="w-full border p-2 rounded mb-3" id="modal-desc">
+            <input type="number" placeholder="Precio" class="w-full border p-2 rounded mb-6" id="modal-price">
+            
+            <div class="flex gap-3">
+                <button onclick="closeProductModal()" class="w-1/3 border py-2 rounded-xl font-bold">Cancelar</button>
+                <button class="w-1/3 bg-red-500 text-white py-2 rounded-xl font-bold"><i class="fas fa-trash"></i></button>
+                <button class="w-1/3 bg-blue-600 text-white py-2 rounded-xl font-bold"><i class="fas fa-save"></i> Guardar</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= LÓGICA JAVASCRIPT ================= -->
+    <script>
+        // --- Configuración Firebase (Reemplazar) ---
+        /*
+        const firebaseConfig = {
+            apiKey: "TU_API_KEY",
+            authDomain: "TU_AUTH_DOMAIN",
+            projectId: "TU_PROJECT_ID",
+            storageBucket: "TU_STORAGE_BUCKET",
+            messagingSenderId: "TU_MESSAGING_SENDER_ID",
+            appId: "TU_APP_ID"
+        };
+        const app = firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.firestore();
+        */
+
+        // --- Navegación SPA ---
+        function navigate(screenId) {
+            document.querySelectorAll('.screen').forEach(screen => screen.classList.remove('active'));
+            document.getElementById(screenId).classList.add('active');
+            // Detener escáneres al cambiar de pantalla
+            stopScanners();
+        }
+
+        // --- Autenticación (Mock) ---
+        function googleLogin() {
+            // auth.signInWithPopup(new firebase.auth.GoogleAuthProvider()).then(result => { ... });
+            alert("Login con Google (Requiere configuración Firebase)");
+            document.getElementById('user-name').innerText = "Juan Pérez";
+            navigate('screen-home');
+        }
+
+        // --- Gestión del Escáner ---
+        let html5QrCodePurchase = null;
+        let html5QrCodeProduct = null;
+
+        function toggleScanner(elementId) {
+            const scannerDiv = document.getElementById(elementId);
+            const isHidden = scannerDiv.classList.contains('hidden');
+            
+            if (isHidden) {
+                scannerDiv.classList.remove('hidden');
+                startScanner(elementId);
+            } else {
+                scannerDiv.classList.add('hidden');
+                stopScanners();
+            }
+        }
+
+        function startScanner(elementId) {
+            const scanner = new Html5Qrcode(elementId);
+            if(elementId === 'purchase-scanner') html5QrCodePurchase = scanner;
+            else html5QrCodeProduct = scanner;
+
+            scanner.start(
+                { facingMode: "environment" }, // Cámara trasera
+                { fps: 10, qrbox: { width: 250, height: 150 } },
+                (decodedText) => {
+                    // Éxito al escanear
+                    alert(`Código escaneado: ${decodedText}`);
+                    
+                    // 1. Buscar en BD (Firestore)
+                    // 2. Si existe, agregar a la lista o abrir popup
+                    // 3. Si no existe, abrir popup para crear
+                    showProductModal('', '', '', decodedText);
+                    
+                    scannerDiv.classList.add('hidden');
+                    stopScanners();
+                },
+                (errorMessage) => { /* Ignorar errores de escaneo continuo */ }
+            ).catch(err => {
+                console.error("Error al iniciar cámara: ", err);
+                alert("No se pudo acceder a la cámara. Verifica los permisos.");
+            });
+        }
+
+        function stopScanners() {
+            if(html5QrCodePurchase && html5QrCodePurchase.isScanning) html5QrCodePurchase.stop();
+            if(html5QrCodeProduct && html5QrCodeProduct.isScanning) html5QrCodeProduct.stop();
+        }
+
+        // --- Modales (Popups) ---
+        function showProductModal(name='', desc='', price='', barcode='') {
+            document.getElementById('modal-name').value = name;
+            document.getElementById('modal-desc').value = desc;
+            document.getElementById('modal-price').value = price;
+            document.getElementById('modal-barcode').value = barcode;
+            document.getElementById('product-modal').classList.remove('hidden');
+        }
+
+        function closeProductModal() {
+            document.getElementById('product-modal').classList.add('hidden');
+        }
+
+        // Inicializar en pantalla de bienvenida
+        navigate('screen-welcome');
+    </script>
+</body>
+</html>
