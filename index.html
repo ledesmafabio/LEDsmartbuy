@@ -273,17 +273,29 @@
 
     <!-- ================= LÓGICA JAVASCRIPT ================= -->
     <script>
-        // --- Configuración Firebase (Reemplazar) ---
-        const firebaseConfig = {
-        apiKey: "AIzaSyB478amvmfV36ZCQ-iE7f8SpcX_RByBsGo",
-        authDomain: "ledsmartbuy.firebaseapp.com",
-        projectId: "ledsmartbuy",
-        storageBucket: "ledsmartbuy.firebasestorage.app",
-        messagingSenderId: "1001221324085",
-        appId: "1:1001221324085:web:8501c9d2bebfeec8c7a07c"        };
-        const app = firebase.initializeApp(firebaseConfig);
-        const auth = firebase.auth();
-        const db = firebase.firestore();
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+	import { getAuth, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-auth.js";
+	import { getFirestore } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-firestore.js";
+
+    const firebaseConfig = {
+    apiKey: "AIzaSyB478amvmfV36ZCQ-iE7f8SpcX_RByBsGo",
+  	authDomain: "ledsmartbuy.firebaseapp.com",
+  	projectId: "ledsmartbuy",
+  	storageBucket: "ledsmartbuy.firebasestorage.app",
+  	messagingSenderId: "1001221324085",
+  	appId: "1:1001221324085:web:8501c9d2bebfeec8c7a07c"};
+        
+	const app = initializeApp(firebaseConfig);
+	const auth = getAuth(app);
+	const db = getFirestore(app);
+
+	// Esperar a que Firebase confirme el estado del usuario
+	onAuthStateChanged(auth, (user) => {
+  	if (!user) {
+    		// No hay sesión → mandar al login
+    		window.location.href = './login.html';
+    		return;
+  	}
 
         // --- Navegación SPA ---
         function navigate(screenId) {
