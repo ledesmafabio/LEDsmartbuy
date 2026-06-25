@@ -186,10 +186,13 @@
 
         <div class="w-full max-w-sm">
             <div class="text-center mb-8">
-                <div class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center text-2xl"
-                     style="background:linear-gradient(135deg,#00e676,#00c853);color:#080c0a;box-shadow:0 8px 24px rgba(0,230,118,0.3);">
-                    <i class="fas fa-bolt"></i>
-                </div>
+                            <img id="loginLogo" src="./images/logo.png" alt="LEDSmartBuy"
+                 class="w-20 h-20 mx-auto mb-4 rounded-2xl object-cover border-2 border-line shadow-lg"
+                 onerror="this.style.display='none'; document.getElementById('loginLogoFallback').style.display='flex';">
+            <div id="loginLogoFallback" class="w-16 h-16 mx-auto mb-4 rounded-2xl items-center justify-center text-2xl"
+                 style="background:linear-gradient(135deg,#00e676,#00c853);color:#080c0a;box-shadow:0 8px 24px rgba(0,230,118,0.3);display:none;">
+                <i class="fas fa-bolt"></i>
+            </div>
                 <h1 class="text-2xl font-black tracking-tight">LED<span class="text-led">Smart</span>Buy</h1>
                 <p class="text-muted text-sm mt-1">Gestion de compras inteligente</p>
             </div>
@@ -398,6 +401,24 @@
             <h2 class="text-xl font-bold">Configuracion</h2>
         </div>
 
+        <!-- Logo de la app -->
+        <div class="bg-surface border border-line rounded-xl p-4 mb-4 text-center">
+            <p class="text-xs text-muted uppercase tracking-wider mb-3 font-semibold">Logo de la App</p>
+            <div class="relative inline-block">
+                <img id="settingsLogo" src="./images/logo.png" alt="Logo"
+                     class="w-28 h-28 rounded-2xl object-cover border-2 border-line"
+                     onerror="this.src='data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 width=%22128%22 height=%22128%22><rect width=%22128%22 height=%22128%22 rx=%2220%22 fill=%22%23121e18%22/><text x=%2264%22 y=%2272%22 text-anchor=%22middle%22 font-size=%2240%22 fill=%22%2300e676%22>LED</text></svg>'">
+                <button onclick="document.getElementById('logoInput').click()"
+                        class="absolute -bottom-2 -right-2 w-8 h-8 rounded-lg bg-led text-base flex items-center justify-center text-sm shadow-lg hover:scale-110 transition"
+                        title="Cambiar logo">
+                    <i class="fas fa-camera"></i>
+                </button>
+                <input type="file" id="logoInput" accept="image/*" class="hidden" onchange="changeLogo(event)">
+            </div>
+            <p class="text-xs text-muted mt-3">Toca la camara para cambiarlo</p>
+        </div>
+
+        <!-- Datos del usuario -->
         <div class="bg-surface border border-line rounded-xl p-4 mb-4 flex items-center gap-4">
             <div class="w-16 h-16 rounded-2xl bg-base-2 border border-line flex items-center justify-center text-led text-2xl font-bold" id="settingsAvatar">U</div>
             <div>
