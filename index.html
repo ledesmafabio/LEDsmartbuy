@@ -24,31 +24,50 @@
     </script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://unpkg.com/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-     <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-	<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
-	<script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
 
     <style>
-        .screen { display: none; height: 100vh; overflow-y: auto; padding-bottom: 90px; }
-        .screen.active { display: block; }
+        /* Cada pantalla ocupa todo el alto. Solo la activa se muestra */
+        .screen {
+            display: none !important;
+            height: 100vh;
+            overflow-y: auto;
+            padding-bottom: 90px;
+            position: relative;
+            z-index: 1;
+        }
+        .screen.active {
+            display: block !important;
+        }
+
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background-color: #080c0a; max-width: 100vw; overflow-x: hidden; color: #e8f5e9;
+            background-color: #080c0a;
+            max-width: 100vw;
+            overflow-x: hidden;
+            color: #e8f5e9;
+            margin: 0;
         }
+
         #reader { width: 100%; }
         #reader video { width: 100% !important; border-radius: 12px; }
         #reader img { display: none; }
         ::-webkit-scrollbar { width: 4px; }
         ::-webkit-scrollbar-track { background: #080c0a; }
         ::-webkit-scrollbar-thumb { background: #243a2e; border-radius: 4px; }
+
         @keyframes fadeUp { from{opacity:0;transform:translateY(12px)} to{opacity:1;transform:translateY(0)} }
         .anim-in { animation: fadeUp 0.3s ease; }
         @keyframes shake { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-4px)} 75%{transform:translateX(4px)} }
-        .header-glow { box-shadow: 0 1px 0 0 #243a2e, 0 4px 20px rgba(0,230,118,0.05); }
 
         .home-card {
-            transition: all 0.25s ease; border: 1px solid #243a2e;
-            position: relative; overflow: hidden; cursor: pointer;
+            transition: all 0.25s ease;
+            border: 1px solid #243a2e;
+            position: relative;
+            overflow: hidden;
+            cursor: pointer;
         }
         .home-card::before {
             content:''; position:absolute; top:0; left:0; right:0; height:2px;
@@ -124,7 +143,7 @@
 
         .purchase-card {
             background:#121e18; border:1px solid #243a2e; border-radius:12px;
-            padding:1rem; transition:all 0.2s; cursor:pointer;
+            padding:1rem; transition:all 0.2s; cursor:default;
         }
         .purchase-card:hover { border-color:#2f4f3c; background:#182820; }
 
@@ -140,6 +159,14 @@
             display:none; align-items:center; gap:0.5rem; animation:shake 0.35s ease;
         }
         .error-box.show { display:flex; }
+
+        /* Fondo decorativo para toda la app */
+        body::before {
+            content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+            background:
+                radial-gradient(ellipse 600px 400px at 15% 10%, rgba(0,230,118,0.05) 0%, transparent 70%),
+                radial-gradient(ellipse 500px 500px at 85% 80%, rgba(0,200,83,0.03) 0%, transparent 70%);
+        }
 
         @media (prefers-reduced-motion:reduce) {
             *,*::before,*::after { animation-duration:0.01ms!important; transition-duration:0.01ms!important; }
@@ -158,7 +185,6 @@
                             #080c0a;">
 
         <div class="w-full max-w-sm">
-            <!-- Logo -->
             <div class="text-center mb-8">
                 <div class="w-16 h-16 mx-auto mb-4 rounded-2xl flex items-center justify-center text-2xl"
                      style="background:linear-gradient(135deg,#00e676,#00c853);color:#080c0a;box-shadow:0 8px 24px rgba(0,230,118,0.3);">
@@ -168,19 +194,16 @@
                 <p class="text-muted text-sm mt-1">Gestion de compras inteligente</p>
             </div>
 
-            <!-- Error -->
             <div class="error-box mb-4" id="authError">
                 <i class="fas fa-exclamation-circle"></i>
                 <span id="authErrorText"></span>
             </div>
 
-            <!-- Tabs -->
             <div class="flex bg-base rounded-xl p-1 mb-5 border border-line">
                 <button class="auth-tab active" id="tabLogin" onclick="switchAuthTab('login')">Ingresar</button>
                 <button class="auth-tab" id="tabRegister" onclick="switchAuthTab('register')">Registrarse</button>
             </div>
 
-            <!-- Login -->
             <form id="panelLogin" class="space-y-3" onsubmit="loginWithEmail(event)">
                 <input type="email" class="dark-input" id="lEmail" placeholder="tu@email.com" required>
                 <div class="relative">
@@ -193,7 +216,6 @@
                 </button>
             </form>
 
-            <!-- Registro -->
             <form id="panelRegister" class="space-y-3 hidden" onsubmit="registerWithEmail(event)">
                 <input type="text" class="dark-input" id="rName" placeholder="Tu nombre" required>
                 <input type="email" class="dark-input" id="rEmail" placeholder="tu@email.com" required>
@@ -207,14 +229,12 @@
                 </button>
             </form>
 
-            <!-- Separador -->
             <div class="flex items-center gap-3 my-5">
                 <div class="flex-1 h-px bg-line"></div>
                 <span class="text-xs text-muted uppercase tracking-wider">o continuar con</span>
                 <div class="flex-1 h-px bg-line"></div>
             </div>
 
-            <!-- Google -->
             <button class="btn-ghost w-full" id="btnGoogle" onclick="loginWithGoogle()">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="G" class="w-5 h-5">
                 Continuar con Google
@@ -269,7 +289,6 @@
             <h2 class="text-xl font-bold">Nueva Compra</h2>
         </div>
 
-        <!-- Datos de la compra -->
         <div class="bg-surface border border-line rounded-xl p-4 mb-4 space-y-3">
             <input type="text" id="purchaseStore" placeholder="Supermercado (Ej: Coto)" class="dark-input">
             <div class="flex gap-3">
@@ -282,7 +301,6 @@
             </div>
         </div>
 
-        <!-- Escaner -->
         <div class="bg-surface border border-line rounded-xl p-4 mb-4">
             <button onclick="toggleScanner('purchase-scanner')" class="btn-led w-full" id="btnScanPurchase">
                 <i class="fas fa-barcode"></i><span>Escanear Codigo</span>
@@ -290,14 +308,12 @@
             <div id="purchase-scanner" class="hidden rounded-xl overflow-hidden mt-3"></div>
         </div>
 
-        <!-- Agregar manual -->
         <div class="bg-surface border border-line rounded-xl p-4 mb-4">
             <button onclick="addToCartManual()" class="w-full border border-dashed border-line-l rounded-xl py-3 text-muted hover:text-led hover:border-led transition font-semibold text-sm">
                 <i class="fas fa-plus mr-2"></i>Agregar producto manualmente
             </button>
         </div>
 
-        <!-- Carrito -->
         <div class="bg-surface border border-line rounded-xl p-4 mb-4">
             <h3 class="font-bold mb-3 flex items-center gap-2">
                 <i class="fas fa-shopping-cart text-led text-sm"></i> Productos en carrito
@@ -311,7 +327,6 @@
             </div>
         </div>
 
-        <!-- Total -->
         <div class="border-l-4 border-led p-4 rounded-r-xl mb-5" style="background:rgba(0,230,118,0.06);">
             <div class="flex justify-between items-center text-xl font-bold text-led">
                 <span>TOTAL:</span>
@@ -320,7 +335,6 @@
             <div id="limitWarning" class="hidden text-danger text-xs mt-1 font-semibold"></div>
         </div>
 
-        <!-- Acciones -->
         <div class="flex gap-3">
             <button onclick="savePurchase()" class="btn-led flex-1" id="btnSavePurchase">
                 <i class="fas fa-save"></i><span class="btn-label">Guardar</span><div class="spinner"></div>
@@ -487,16 +501,16 @@
     </div>
 
     <!-- ==================== LOGICA PRINCIPAL ==================== -->
-	<script>
+    <script>
         // ===== FIREBASE INIT =====
         const firebaseConfig = {
-       	apiKey: "AIzaSyB478amvmfV36ZCQ-iE7f8SpcX_RByBsGo",
-  	authDomain: "ledsmartbuy.firebaseapp.com",
-  	projectId: "ledsmartbuy",
-  	storageBucket: "ledsmartbuy.firebasestorage.app",
-  	messagingSenderId: "1001221324085",
-  	appId: "1:1001221324085:web:8501c9d2bebfeec8c7a07c"
-	};
+            apiKey: "AIzaSyB478amvmfV36ZCQ-iE7f8SpcX_RByBsGo",
+            authDomain: "ledsmartbuy.firebaseapp.com",
+            projectId: "ledsmartbuy",
+            storageBucket: "ledsmartbuy.firebasestorage.app",
+            messagingSenderId: "1001221324085",
+            appId: "1:1001221324085:web:8501c9d2bebfeec8c7a07c"
+        };
         firebase.initializeApp(firebaseConfig);
         const auth = firebase.auth();
         const db = firebase.firestore();
@@ -504,10 +518,10 @@
         // ===== ESTADO GLOBAL =====
         let currentUser = null;
         let userData = null;
-        let userProducts = [];       // Catalogo de productos
-        let savedPurchases = [];     // Compras guardadas
-        let currentCart = [];        // Carrito actual
-        let editingProductId = null;  // ID del producto editando (null = nuevo)
+        let userProducts = [];
+        let savedPurchases = [];
+        let currentCart = [];
+        let editingProductId = null;
         let confirmCallback = null;
         let activeScanner = null;
         let activeScannerId = null;
@@ -531,20 +545,21 @@
         }
         function genTempId() { return '_' + Math.random().toString(36).substr(2, 9); }
 
-        function showToast(msg, type = 'success') {
+        function showToast(msg, type) {
+            type = type || 'success';
             const icons = { success: 'fa-check-circle', error: 'fa-times-circle', info: 'fa-info-circle' };
             const colors = { success: '#00e676', error: '#ff5252', info: '#29b6f6' };
             const t = document.createElement('div');
             t.className = 'toast';
-            t.innerHTML = `<i class="fas ${icons[type]}" style="color:${colors[type]};font-size:1rem;flex-shrink:0;"></i><span>${esc(msg)}</span>`;
+            t.innerHTML = '<i class="fas ' + icons[type] + '" style="color:' + colors[type] + ';font-size:1rem;flex-shrink:0;"></i><span>' + esc(msg) + '</span>';
             $('toastWrap').appendChild(t);
-            setTimeout(() => { t.classList.add('out'); setTimeout(() => t.remove(), 300); }, 3000);
+            setTimeout(function() { t.classList.add('out'); setTimeout(function() { t.remove(); }, 300); }, 3000);
         }
 
         function showAuthError(msg) {
             $('authErrorText').textContent = msg;
             $('authError').classList.add('show');
-            setTimeout(() => $('authError').classList.remove('show'), 5000);
+            setTimeout(function() { $('authError').classList.remove('show'); }, 5000);
         }
 
         function showConfirm(title, text, yesLabel, callback) {
@@ -555,7 +570,7 @@
             $('confirm-modal').classList.remove('hidden');
         }
         function closeConfirm() { $('confirm-modal').classList.add('hidden'); confirmCallback = null; }
-        $('confirmYes').addEventListener('click', () => {
+        $('confirmYes').addEventListener('click', function() {
             $('confirm-modal').classList.add('hidden');
             if (confirmCallback) confirmCallback();
             confirmCallback = null;
@@ -563,12 +578,19 @@
 
         // ===== NAVEGACION SPA =====
         function navigate(screenId) {
-            document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
-            const target = $(screenId);
-            target.classList.add('active');
-            target.classList.remove('anim-in');
-            void target.offsetWidth;
-            target.classList.add('anim-in');
+            // Forzar: quitar active de TODAS las pantallas
+            var screens = document.querySelectorAll('.screen');
+            for (var i = 0; i < screens.length; i++) {
+                screens[i].classList.remove('active');
+            }
+            // Activar solo la solicitada
+            var target = $(screenId);
+            if (target) {
+                target.classList.add('active');
+                target.classList.remove('anim-in');
+                void target.offsetWidth; // forzar reflow para reiniciar animacion
+                target.classList.add('anim-in');
+            }
             stopScanners();
             window.scrollTo(0, 0);
         }
@@ -583,15 +605,15 @@
         }
 
         function togglePw(inputId, btn) {
-            const inp = $(inputId);
-            const ico = btn.querySelector('i');
+            var inp = $(inputId);
+            var ico = btn.querySelector('i');
             if (inp.type === 'password') { inp.type = 'text'; ico.classList.replace('fa-eye', 'fa-eye-slash'); }
             else { inp.type = 'password'; ico.classList.replace('fa-eye-slash', 'fa-eye'); }
         }
 
-        // ===== AUTH: TRADUCIR ERRORES =====
+        // ===== AUTH: ERRORES =====
         function authError(code) {
-            const m = {
+            var m = {
                 'auth/user-not-found': 'No existe una cuenta con ese email',
                 'auth/wrong-password': 'Contrasena incorrecta',
                 'auth/email-already-in-use': 'Ya existe una cuenta con ese email',
@@ -609,42 +631,42 @@
         function loginWithEmail(e) {
             e.preventDefault();
             $('authError').classList.remove('show');
-            const btn = $('btnEmailLogin');
+            var btn = $('btnEmailLogin');
             btn.classList.add('loading'); btn.disabled = true;
             auth.signInWithEmailAndPassword($('lEmail').value.trim(), $('lPass').value)
-                .catch(err => showAuthError(authError(err.code)))
-                .finally(() => { btn.classList.remove('loading'); btn.disabled = false; });
+                .catch(function(err) { showAuthError(authError(err.code)); })
+                .finally(function() { btn.classList.remove('loading'); btn.disabled = false; });
         }
 
         // ===== AUTH: REGISTRO EMAIL =====
         function registerWithEmail(e) {
             e.preventDefault();
             $('authError').classList.remove('show');
-            const nombre = $('rName').value.trim();
+            var nombre = $('rName').value.trim();
             if (nombre.length < 2) { showAuthError('Ingresa tu nombre'); return; }
-            const btn = $('btnEmailRegister');
+            var btn = $('btnEmailRegister');
             btn.classList.add('loading'); btn.disabled = true;
             auth.createUserWithEmailAndPassword($('rEmail').value.trim(), $('rPass').value)
-                .then(cred => {
+                .then(function(cred) {
                     return db.collection('usuarios').doc(cred.user.uid).set({
                         nombre: nombre,
                         email: cred.user.email,
                         fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
                     });
                 })
-                .catch(err => showAuthError(authError(err.code)))
-                .finally(() => { btn.classList.remove('loading'); btn.disabled = false; });
+                .catch(function(err) { showAuthError(authError(err.code)); })
+                .finally(function() { btn.classList.remove('loading'); btn.disabled = false; });
         }
 
         // ===== AUTH: GOOGLE =====
         function loginWithGoogle() {
             $('authError').classList.remove('show');
-            const btn = $('btnGoogle');
+            var btn = $('btnGoogle');
             btn.disabled = true;
             auth.signInWithPopup(new firebase.auth.GoogleAuthProvider())
-                .then(result => {
-                    const userRef = db.collection('usuarios').doc(result.user.uid);
-                    userRef.get().then(doc => {
+                .then(function(result) {
+                    var userRef = db.collection('usuarios').doc(result.user.uid);
+                    userRef.get().then(function(doc) {
                         if (!doc.exists) {
                             userRef.set({
                                 nombre: result.user.displayName || 'Usuario',
@@ -652,33 +674,41 @@
                                 fechaCreacion: firebase.firestore.FieldValue.serverTimestamp()
                             });
                         }
-                    });
+                    }).catch(function(err) { console.error('Error guardando usuario:', err); });
                 })
-                .catch(err => {
+                .catch(function(err) {
                     if (err.code !== 'auth/popup-closed-by-user') showAuthError(authError(err.code));
                 })
-                .finally(() => btn.disabled = false);
+                .finally(function() { btn.disabled = false; });
         }
 
         // ===== AUTH: LOGOUT =====
         function logout() {
-            showConfirm('Cerrar sesion', 'Seguro que queres salir de tu cuenta?', 'Salir', () => {
+            showConfirm('Cerrar sesion', 'Seguro que queres salir de tu cuenta?', 'Salir', function() {
                 auth.signOut();
             });
         }
 
         // ===== AUTH: ESTADO =====
-        auth.onAuthStateChanged(user => {
+        auth.onAuthStateChanged(function(user) {
             if (user) {
                 currentUser = user;
-                // Cargar datos del usuario
-                db.collection('usuarios').doc(user.uid).get().then(doc => {
+                db.collection('usuarios').doc(user.uid).get().then(function(doc) {
                     userData = doc.exists ? doc.data() : { nombre: 'Usuario', email: user.email };
-                    const inicial = (userData.nombre || user.email || 'U')[0].toUpperCase();
+                    var inicial = (userData.nombre || user.email || 'U')[0].toUpperCase();
                     $('user-name').textContent = userData.nombre || 'Usuario';
                     $('userAvatar').textContent = inicial;
                     $('settingsName').textContent = userData.nombre || 'Usuario';
                     $('settingsEmail').textContent = userData.email || user.email;
+                    $('settingsAvatar').textContent = inicial;
+                }).catch(function(err) {
+                    console.error('Error cargando datos de usuario:', err);
+                    // Usar datos basicos del auth aunque falle Firestore
+                    var inicial = (user.displayName || user.email || 'U')[0].toUpperCase();
+                    $('user-name').textContent = user.displayName || 'Usuario';
+                    $('userAvatar').textContent = inicial;
+                    $('settingsName').textContent = user.displayName || 'Usuario';
+                    $('settingsEmail').textContent = user.email;
                     $('settingsAvatar').textContent = inicial;
                 });
                 startListeners();
@@ -687,28 +717,29 @@
                 currentUser = null;
                 userData = null;
                 stopListeners();
+                currentCart = [];
                 navigate('screen-welcome');
             }
         });
 
         // ===== FIRESTORE LISTENERS =====
         function startListeners() {
-            const uid = currentUser.uid;
-            // Escuchar productos
+            var uid = currentUser.uid;
             unsubProducts = db.collection('usuarios').doc(uid).collection('productos')
                 .orderBy('fechaCreacion', 'desc')
-                .onSnapshot(snap => {
-                    userProducts = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                .onSnapshot(function(snap) {
+                    userProducts = [];
+                    snap.forEach(function(d) { userProducts.push({ id: d.id, ...d.data() }); });
                     renderProducts();
-                }, err => console.error('Error productos:', err));
+                }, function(err) { console.error('Error productos:', err); });
 
-            // Escuchar compras
             unsubPurchases = db.collection('usuarios').doc(uid).collection('compras')
                 .orderBy('fecha', 'desc')
-                .onSnapshot(snap => {
-                    savedPurchases = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                .onSnapshot(function(snap) {
+                    savedPurchases = [];
+                    snap.forEach(function(d) { savedPurchases.push({ id: d.id, ...d.data() }); });
                     renderPurchases();
-                }, err => console.error('Error compras:', err));
+                }, function(err) { console.error('Error compras:', err); });
         }
 
         function stopListeners() {
@@ -720,7 +751,7 @@
 
         // ===== ESCANER =====
         function toggleScanner(elementId) {
-            const div = $(elementId);
+            var div = $(elementId);
             if (div.classList.contains('hidden')) {
                 div.classList.remove('hidden');
                 startScanner(elementId);
@@ -732,23 +763,22 @@
 
         function startScanner(elementId) {
             stopScanners();
-            const scanner = new Html5Qrcode(elementId);
+            var scanner = new Html5Qrcode(elementId);
             activeScanner = scanner;
             activeScannerId = elementId;
 
             scanner.start(
                 { facingMode: "environment" },
                 { fps: 10, qrbox: { width: 250, height: 120 } },
-                (decodedText) => {
-                    // Codigo escaneado exitosamente
+                function(decodedText) {
                     stopScanners();
                     $(elementId).classList.add('hidden');
                     handleScannedCode(decodedText, elementId);
                 },
-                () => {} // Ignorar errores de cuadro
-            ).catch(err => {
+                function() { /* ignorar errores de cuadro */ }
+            ).catch(function(err) {
                 console.error('Error camara:', err);
-                showToast('No se pudo acceder a la camara. Verifica los permisos.', 'error');
+                showToast('No se pudo acceder a la camara', 'error');
                 $(elementId).classList.add('hidden');
             });
         }
@@ -761,18 +791,19 @@
             }
         }
 
-        // Manejar codigo escaneado segun la pantalla
         function handleScannedCode(code, scannerId) {
-            // Buscar en el catalogo de productos del usuario
-            const found = userProducts.find(p => p.codigo === code);
+            var found = null;
+            for (var i = 0; i < userProducts.length; i++) {
+                if (userProducts[i].codigo === code) { found = userProducts[i]; break; }
+            }
 
             if (scannerId === 'purchase-scanner') {
                 if (found) {
                     addToCart(found.nombre, found.precio || 0, 1, code);
-                    showToast(`"${found.nombre}" agregado al carrito`);
+                    showToast('"' + found.nombre + '" agregado al carrito');
                 } else {
                     showToast('Producto no encontrado en tu catalogo', 'info');
-                    openProductModal(null, code);
+                    openProductModal(null, code, true);
                 }
             } else if (scannerId === 'product-scanner') {
                 if (found) {
@@ -790,10 +821,11 @@
 
         // ===== CARRITO =====
         function openNewPurchase() {
-            clearCart();
+            currentCart = [];
             $('purchaseStore').value = '';
             $('purchaseCurrency').value = 'ARS';
             $('purchaseLimit').value = '';
+            renderCart();
             navigate('screen-new-purchase');
         }
 
@@ -814,24 +846,28 @@
         }
 
         function removeFromCart(tempId) {
-            currentCart = currentCart.filter(i => i.tempId !== tempId);
+            currentCart = currentCart.filter(function(i) { return i.tempId !== tempId; });
             renderCart();
         }
 
         function updateCartQty(tempId, delta) {
-            const item = currentCart.find(i => i.tempId === tempId);
-            if (item) {
-                item.cantidad = Math.max(1, item.cantidad + delta);
-                renderCart();
+            for (var i = 0; i < currentCart.length; i++) {
+                if (currentCart[i].tempId === tempId) {
+                    currentCart[i].cantidad = Math.max(1, currentCart[i].cantidad + delta);
+                    break;
+                }
             }
+            renderCart();
         }
 
         function updateCartPrice(tempId, value) {
-            const item = currentCart.find(i => i.tempId === tempId);
-            if (item) {
-                item.precio = parseFloat(value) || 0;
-                renderCart();
+            for (var i = 0; i < currentCart.length; i++) {
+                if (currentCart[i].tempId === tempId) {
+                    currentCart[i].precio = parseFloat(value) || 0;
+                    break;
+                }
             }
+            renderCart();
         }
 
         function clearCart() {
@@ -840,191 +876,197 @@
         }
 
         function renderCart() {
-            const container = $('cart-items');
-            const empty = $('cartEmpty');
+            var container = $('cart-items');
+            var empty = $('cartEmpty');
 
-            // Limpiar items existentes (no el empty)
-            container.querySelectorAll('.cart-item').forEach(el => el.remove());
+            // ★ FIX: currency declarada AFUERA del if/else para que siempre exista
+            var currency = $('purchaseCurrency') ? $('purchaseCurrency').value : 'ARS';
+
+            // Limpiar items anteriores (no el empty)
+            var oldItems = container.querySelectorAll('.cart-item');
+            for (var i = 0; i < oldItems.length; i++) oldItems[i].remove();
 
             if (currentCart.length === 0) {
-                empty.classList.remove('hidden');
+                empty.style.display = 'block';
             } else {
-                empty.classList.add('hidden');
-                const currency = $('purchaseCurrency').value;
-                currentCart.forEach(item => {
-                    const div = document.createElement('div');
+                empty.style.display = 'none';
+                for (var j = 0; j < currentCart.length; j++) {
+                    var item = currentCart[j];
+                    var div = document.createElement('div');
                     div.className = 'cart-item';
-                    div.innerHTML = `
-                        <div class="flex-1 min-w-0">
-                            <div class="font-semibold text-sm truncate">${esc(item.nombre)}</div>
-                            ${item.codigo ? `<div class="text-xs text-muted">${esc(item.codigo)}</div>` : ''}
-                            <input type="number" value="${item.precio}" min="0" step="0.01"
-                                   class="dark-input text-xs py-1 mt-1 w-28"
-                                   onchange="updateCartPrice('${item.tempId}', this.value)"
-                                   placeholder="Precio">
-                        </div>
-                        <div class="flex items-center gap-1 flex-shrink-0">
-                            <button onclick="updateCartQty('${item.tempId}', -1)" class="w-7 h-7 rounded-lg bg-base-2 border border-line text-muted hover:text-led hover:border-led transition text-xs flex items-center justify-center">
-                                <i class="fas fa-minus"></i>
-                            </button>
-                            <span class="w-8 text-center text-sm font-bold">${item.cantidad}</span>
-                            <button onclick="updateCartQty('${item.tempId}', 1)" class="w-7 h-7 rounded-lg bg-base-2 border border-line text-muted hover:text-led hover:border-led transition text-xs flex items-center justify-center">
-                                <i class="fas fa-plus"></i>
-                            </button>
-                        </div>
-                        <button onclick="removeFromCart('${item.tempId}')" class="text-muted hover:text-danger transition flex-shrink-0 ml-1">
-                            <i class="fas fa-trash-can text-sm"></i>
-                        </button>
-                    `;
+                    div.innerHTML =
+                        '<div class="flex-1 min-w-0">' +
+                            '<div class="font-semibold text-sm truncate">' + esc(item.nombre) + '</div>' +
+                            (item.codigo ? '<div class="text-xs text-muted">' + esc(item.codigo) + '</div>' : '') +
+                            '<input type="number" value="' + item.precio + '" min="0" step="0.01" ' +
+                                'class="dark-input text-xs py-1 mt-1 w-28" ' +
+                                'onchange="updateCartPrice(\'' + item.tempId + '\', this.value)" placeholder="Precio">' +
+                        '</div>' +
+                        '<div class="flex items-center gap-1 flex-shrink-0">' +
+                            '<button onclick="updateCartQty(\'' + item.tempId + '\', -1)" class="w-7 h-7 rounded-lg bg-base-2 border border-line text-muted hover:text-led hover:border-led transition text-xs flex items-center justify-center"><i class="fas fa-minus"></i></button>' +
+                            '<span class="w-8 text-center text-sm font-bold">' + item.cantidad + '</span>' +
+                            '<button onclick="updateCartQty(\'' + item.tempId + '\', 1)" class="w-7 h-7 rounded-lg bg-base-2 border border-line text-muted hover:text-led hover:border-led transition text-xs flex items-center justify-center"><i class="fas fa-plus"></i></button>' +
+                        '</div>' +
+                        '<button onclick="removeFromCart(\'' + item.tempId + '\')" class="text-muted hover:text-danger transition flex-shrink-0 ml-1"><i class="fas fa-trash-can text-sm"></i></button>';
                     container.appendChild(div);
-                });
+                }
             }
 
             // Calcular total
-            const total = currentCart.reduce((s, i) => s + (i.precio * i.cantidad), 0);
+            var total = 0;
+            for (var k = 0; k < currentCart.length; k++) {
+                total += (currentCart[k].precio * currentCart[k].cantidad);
+            }
             $('cart-total').textContent = formatPrice(total, currency);
             $('cartCount').textContent = currentCart.length + ' items';
 
             // Verificar limite
-            const limit = parseFloat($('purchaseLimit').value);
-            const warning = $('limitWarning');
-            if (limit > 0 && total > limit) {
+            var limitVal = parseFloat($('purchaseLimit').value);
+            var warning = $('limitWarning');
+            if (limitVal > 0 && total > limitVal) {
                 warning.classList.remove('hidden');
-                warning.textContent = `Superaste el limite por ${formatPrice(total - limit, currency)}`;
+                warning.textContent = 'Superaste el limite por ' + formatPrice(total - limitVal, currency);
             } else {
                 warning.classList.add('hidden');
             }
         }
 
-        // Actualizar total cuando cambia la moneda
         $('purchaseCurrency').addEventListener('change', renderCart);
         $('purchaseLimit').addEventListener('input', renderCart);
 
         // ===== GUARDAR COMPRA =====
         function savePurchase() {
             if (currentCart.length === 0) { showToast('El carrito esta vacio', 'error'); return; }
-            const store = $('purchaseStore').value.trim();
+            var store = $('purchaseStore').value.trim();
             if (!store) { showToast('Ingresa el nombre del supermercado', 'error'); $('purchaseStore').focus(); return; }
 
-            const btn = $('btnSavePurchase');
+            var btn = $('btnSavePurchase');
             btn.classList.add('loading'); btn.disabled = true;
 
-            const currency = $('purchaseCurrency').value;
-            const total = currentCart.reduce((s, i) => s + (i.precio * i.cantidad), 0);
+            var currency = $('purchaseCurrency').value;
+            var total = 0;
+            for (var i = 0; i < currentCart.length; i++) total += (currentCart[i].precio * currentCart[i].cantidad);
+
+            var items = [];
+            for (var j = 0; j < currentCart.length; j++) {
+                items.push({ nombre: currentCart[j].nombre, precio: currentCart[j].precio, cantidad: currentCart[j].cantidad, codigo: currentCart[j].codigo });
+            }
 
             db.collection('usuarios').doc(currentUser.uid).collection('compras').add({
                 supermercado: store,
                 moneda: currency,
                 limite: parseFloat($('purchaseLimit').value) || 0,
                 total: total,
-                items: currentCart.map(i => ({ nombre: i.nombre, precio: i.precio, cantidad: i.cantidad, codigo: i.codigo })),
+                items: items,
                 fecha: firebase.firestore.FieldValue.serverTimestamp()
-            }).then(() => {
+            }).then(function() {
                 showToast('Compra guardada');
-                clearCart();
+                currentCart = [];
                 navigate('screen-saved-purchases');
-            }).catch(err => {
+            }).catch(function(err) {
                 console.error(err);
                 showToast('Error al guardar la compra', 'error');
-            }).finally(() => { btn.classList.remove('loading'); btn.disabled = false; });
+            }).finally(function() { btn.classList.remove('loading'); btn.disabled = false; });
         }
 
         // ===== RENDER COMPRAS GUARDADAS =====
         function renderPurchases() {
-            const container = $('purchasesList');
-            const filter = ($('filterPurchases').value || '').toLowerCase();
+            var container = $('purchasesList');
+            var filter = ($('filterPurchases').value || '').toLowerCase();
 
-            let filtered = savedPurchases;
-            if (filter) filtered = filtered.filter(p => (p.supermercado || '').toLowerCase().includes(filter));
+            var filtered = savedPurchases;
+            if (filter) filtered = filtered.filter(function(p) { return (p.supermercado || '').toLowerCase().indexOf(filter) !== -1; });
 
             if (filtered.length === 0) {
-                container.innerHTML = `<div class="text-center text-muted py-10">
-                    <i class="fas fa-folder-open text-3xl mb-2 opacity-30"></i>
-                    <p class="text-sm">${filter ? 'Sin resultados' : 'No hay compras guardadas'}</p>
-                </div>`;
+                container.innerHTML = '<div class="text-center text-muted py-10"><i class="fas fa-folder-open text-3xl mb-2 opacity-30"></i><p class="text-sm">' + (filter ? 'Sin resultados' : 'No hay compras guardadas') + '</p></div>';
                 return;
             }
 
-            container.innerHTML = filtered.map(p => {
-                const fecha = p.fecha ? new Date(p.fecha.seconds * 1000).toLocaleDateString('es-AR') : 'Sin fecha';
-                const items = (p.items || []).length;
-                return `<div class="purchase-card">
-                    <div class="flex justify-between items-start">
-                        <div>
-                            <h4 class="font-bold">${esc(p.supermercado || 'Sin nombre')}</h4>
-                            <p class="text-xs text-muted mt-0.5">${fecha} - ${items} item${items !== 1 ? 's' : ''}</p>
-                            <p class="text-led font-bold mt-1">${formatPrice(p.total, p.moneda)}</p>
-                        </div>
-                        <div class="flex gap-2 flex-shrink-0">
-                            <button onclick="reopenPurchase('${p.id}')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition"
-                                    style="background:rgba(0,230,118,0.1);color:#00e676;" title="Abrir como nueva compra">
-                                <i class="fas fa-folder-open"></i>
-                            </button>
-                            <button onclick="deletePurchase('${p.id}')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition"
-                                    style="background:rgba(255,82,82,0.1);color:#ff5252;" title="Eliminar">
-                                <i class="fas fa-trash-can"></i>
-                            </button>
-                        </div>
-                    </div>
-                </div>`;
-            }).join('');
+            var html = '';
+            for (var i = 0; i < filtered.length; i++) {
+                var p = filtered[i];
+                var fecha = p.fecha ? new Date(p.fecha.seconds * 1000).toLocaleDateString('es-AR') : 'Sin fecha';
+                var items = (p.items || []).length;
+                html +=
+                    '<div class="purchase-card">' +
+                        '<div class="flex justify-between items-start">' +
+                            '<div>' +
+                                '<h4 class="font-bold">' + esc(p.supermercado || 'Sin nombre') + '</h4>' +
+                                '<p class="text-xs text-muted mt-0.5">' + fecha + ' - ' + items + ' item' + (items !== 1 ? 's' : '') + '</p>' +
+                                '<p class="text-led font-bold mt-1">' + formatPrice(p.total, p.moneda) + '</p>' +
+                            '</div>' +
+                            '<div class="flex gap-2 flex-shrink-0">' +
+                                '<button onclick="reopenPurchase(\'' + p.id + '\')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition" style="background:rgba(0,230,118,0.1);color:#00e676;" title="Reabrir"><i class="fas fa-folder-open"></i></button>' +
+                                '<button onclick="deletePurchase(\'' + p.id + '\')" class="px-3 py-1.5 rounded-lg text-xs font-semibold transition" style="background:rgba(255,82,82,0.1);color:#ff5252;" title="Eliminar"><i class="fas fa-trash-can"></i></button>' +
+                            '</div>' +
+                        '</div>' +
+                    '</div>';
+            }
+            container.innerHTML = html;
         }
 
         function reopenPurchase(id) {
-            const p = savedPurchases.find(x => x.id === id);
+            var p = null;
+            for (var i = 0; i < savedPurchases.length; i++) {
+                if (savedPurchases[i].id === id) { p = savedPurchases[i]; break; }
+            }
             if (!p) return;
-            clearCart();
+            currentCart = [];
             $('purchaseStore').value = p.supermercado || '';
             $('purchaseCurrency').value = p.moneda || 'ARS';
             $('purchaseLimit').value = p.limite || '';
-            (p.items || []).forEach(i => addToCart(i.nombre, i.precio, i.cantidad, i.codigo));
+            var items = p.items || [];
+            for (var j = 0; j < items.length; j++) {
+                addToCart(items[j].nombre, items[j].precio, items[j].cantidad, items[j].codigo);
+            }
             navigate('screen-new-purchase');
             showToast('Compra cargada para editar', 'info');
         }
 
         function deletePurchase(id) {
-            const p = savedPurchases.find(x => x.id === id);
-            showConfirm('Eliminar compra', `Se eliminara la compra de "${p ? p.supermercado : ''}" permanentemente.`, 'Eliminar', () => {
+            var p = null;
+            for (var i = 0; i < savedPurchases.length; i++) {
+                if (savedPurchases[i].id === id) { p = savedPurchases[i]; break; }
+            }
+            showConfirm('Eliminar compra', 'Se eliminara la compra de "' + (p ? p.supermercado : '') + '" permanentemente.', 'Eliminar', function() {
                 db.collection('usuarios').doc(currentUser.uid).collection('compras').doc(id).delete()
-                    .then(() => showToast('Compra eliminada'))
-                    .catch(() => showToast('Error al eliminar', 'error'));
+                    .then(function() { showToast('Compra eliminada'); })
+                    .catch(function() { showToast('Error al eliminar', 'error'); });
             });
         }
 
         // ===== PRODUCTOS: RENDER =====
         function renderProducts() {
-            const container = $('productsList');
-            const search = ($('searchProducts').value || '').toLowerCase();
+            var container = $('productsList');
+            var search = ($('searchProducts').value || '').toLowerCase();
 
-            let filtered = userProducts;
-            if (search) filtered = filtered.filter(p =>
-                (p.nombre || '').toLowerCase().includes(search) ||
-                (p.codigo || '').includes(search)
-            );
+            var filtered = userProducts;
+            if (search) filtered = filtered.filter(function(p) {
+                return (p.nombre || '').toLowerCase().indexOf(search) !== -1 || (p.codigo || '').indexOf(search) !== -1;
+            });
 
             if (filtered.length === 0) {
-                container.innerHTML = `<div class="text-center text-muted py-10">
-                    <i class="fas fa-box-open text-3xl mb-2 opacity-30"></i>
-                    <p class="text-sm">${search ? 'Sin resultados' : 'No hay productos cargados'}</p>
-                </div>`;
+                container.innerHTML = '<div class="text-center text-muted py-10"><i class="fas fa-box-open text-3xl mb-2 opacity-30"></i><p class="text-sm">' + (search ? 'Sin resultados' : 'No hay productos cargados') + '</p></div>';
                 return;
             }
 
-            container.innerHTML = filtered.map(p => {
-                const catColor = CAT_COLORS[p.categoria] || CAT_COLORS.otros;
-                return `<div class="product-card" onclick="openProductModal('${p.id}')">
-                    <div class="flex justify-between items-start">
-                        <div class="flex-1 min-w-0">
-                            <h4 class="font-bold truncate">${esc(p.nombre)}</h4>
-                            ${p.descripcion ? `<p class="text-xs text-muted mt-0.5 truncate">${esc(p.descripcion)}</p>` : ''}
-                            ${p.codigo ? `<p class="text-xs text-muted mt-0.5"><i class="fas fa-barcode mr-1"></i>${esc(p.codigo)}</p>` : ''}
-                        </div>
-                        <span class="font-bold ml-3 flex-shrink-0" style="color:${catColor};">
-                            ${p.precio ? formatPrice(p.precio, 'ARS') : 'S/P'}
-                        </span>
-                    </div>
-                </div>`;
-            }).join('');
+            var html = '';
+            for (var i = 0; i < filtered.length; i++) {
+                var p = filtered[i];
+                var catColor = CAT_COLORS[p.categoria] || CAT_COLORS.otros;
+                html +=
+                    '<div class="product-card" onclick="openProductModal(\'' + p.id + '\')">' +
+                        '<div class="flex justify-between items-start">' +
+                            '<div class="flex-1 min-w-0">' +
+                                '<h4 class="font-bold truncate">' + esc(p.nombre) + '</h4>' +
+                                (p.descripcion ? '<p class="text-xs text-muted mt-0.5 truncate">' + esc(p.descripcion) + '</p>' : '') +
+                                (p.codigo ? '<p class="text-xs text-muted mt-0.5"><i class="fas fa-barcode mr-1"></i>' + esc(p.codigo) + '</p>' : '') +
+                            '</div>' +
+                            '<span class="font-bold ml-3 flex-shrink-0" style="color:' + catColor + ';">' + (p.precio ? formatPrice(p.precio, 'ARS') : 'S/P') + '</span>' +
+                        '</div>' +
+                    '</div>';
+            }
+            container.innerHTML = html;
         }
 
         // ===== PRODUCTOS: MODAL =====
@@ -1033,8 +1075,10 @@
             $('modalTitle').textContent = productId ? 'Editar Producto' : 'Nuevo Producto';
 
             if (productId) {
-                // Editar existente
-                const p = userProducts.find(x => x.id === productId);
+                var p = null;
+                for (var i = 0; i < userProducts.length; i++) {
+                    if (userProducts[i].id === productId) { p = userProducts[i]; break; }
+                }
                 if (!p) return;
                 $('modal-barcode').value = p.codigo || '';
                 $('modal-name').value = p.nombre || '';
@@ -1043,7 +1087,6 @@
                 $('modal-cat').value = p.categoria || 'otros';
                 $('modalDeleteBtn').classList.remove('hidden');
             } else {
-                // Nuevo
                 $('modal-barcode').value = barcode || '';
                 $('modal-name').value = '';
                 $('modal-desc').value = '';
@@ -1052,9 +1095,7 @@
                 $('modalDeleteBtn').classList.add('hidden');
             }
 
-            // Guardar si es para el carrito (al guardar, ademas de guardar el producto, lo agrega al carrito)
             $('product-modal').dataset.forcart = forCart ? '1' : '0';
-
             $('product-modal').classList.remove('hidden');
             if (!barcode) $('modal-name').focus();
         }
@@ -1064,39 +1105,38 @@
             editingProductId = null;
         }
 
-        // Cerrar modal al click fuera
-        $('product-modal').addEventListener('click', e => { if (e.target === $('product-modal')) closeProductModal(); });
-        $('confirm-modal').addEventListener('click', e => { if (e.target === $('confirm-modal')) closeConfirm(); });
+        $('product-modal').addEventListener('click', function(e) { if (e.target === $('product-modal')) closeProductModal(); });
+        $('confirm-modal').addEventListener('click', function(e) { if (e.target === $('confirm-modal')) closeConfirm(); });
 
         function saveProduct() {
-            const nombre = $('modal-name').value.trim();
+            var nombre = $('modal-name').value.trim();
             if (!nombre) { showToast('Ingresa el nombre del producto', 'error'); $('modal-name').focus(); return; }
 
-            const data = {
+            var data = {
                 nombre: nombre,
                 descripcion: $('modal-desc').value.trim(),
                 precio: parseFloat($('modal-price').value) || 0,
                 codigo: $('modal-barcode').value.trim(),
-                categoria: $('modal-cat').value,
-                fechaCreacion: editingProductId ? undefined : firebase.firestore.FieldValue.serverTimestamp()
+                categoria: $('modal-cat').value
             };
-            // Limpiar undefined
-            Object.keys(data).forEach(k => data[k] === undefined && delete data[k]);
 
-            const col = db.collection('usuarios').doc(currentUser.uid).collection('productos');
-            const promise = editingProductId
-                ? col.doc(editingProductId).update(data)
-                : col.add(data);
+            var col = db.collection('usuarios').doc(currentUser.uid).collection('productos');
+            var promise;
+            if (editingProductId) {
+                promise = col.doc(editingProductId).update(data);
+            } else {
+                data.fechaCreacion = firebase.firestore.FieldValue.serverTimestamp();
+                promise = col.add(data);
+            }
 
-            promise.then(() => {
+            promise.then(function() {
                 showToast(editingProductId ? 'Producto actualizado' : 'Producto guardado');
-                // Si era para el carrito, agregarlo
                 if ($('product-modal').dataset.forcart === '1' && !editingProductId) {
                     addToCart(data.nombre, data.precio, 1, data.codigo);
-                    showToast(`"${data.nombre}" agregado al carrito`);
+                    showToast('"' + data.nombre + '" agregado al carrito');
                 }
                 closeProductModal();
-            }).catch(err => {
+            }).catch(function(err) {
                 console.error(err);
                 showToast('Error al guardar', 'error');
             });
@@ -1104,84 +1144,76 @@
 
         function deleteProduct() {
             if (!editingProductId) return;
-            const p = userProducts.find(x => x.id === editingProductId);
-            showConfirm('Eliminar producto', `Se eliminara "${p ? p.nombre : ''}" de tu catalogo.`, 'Eliminar', () => {
+            var p = null;
+            for (var i = 0; i < userProducts.length; i++) {
+                if (userProducts[i].id === editingProductId) { p = userProducts[i]; break; }
+            }
+            showConfirm('Eliminar producto', 'Se eliminara "' + (p ? p.nombre : '') + '" de tu catalogo.', 'Eliminar', function() {
                 db.collection('usuarios').doc(currentUser.uid).collection('productos').doc(editingProductId).delete()
-                    .then(() => { showToast('Producto eliminado'); closeProductModal(); })
-                    .catch(() => showToast('Error al eliminar', 'error'));
+                    .then(function() { showToast('Producto eliminado'); closeProductModal(); })
+                    .catch(function() { showToast('Error al eliminar', 'error'); });
             });
         }
 
         // ===== COMPARADOR =====
         function searchCompare() {
-            const query = ($('compareSearch').value || '').toLowerCase().trim();
-            const container = $('compareResults');
+            var query = ($('compareSearch').value || '').toLowerCase().trim();
+            var container = $('compareResults');
 
             if (!query || query.length < 2) {
-                container.innerHTML = `<div class="text-center text-muted py-10">
-                    <i class="fas fa-scale-balanced text-3xl mb-2 opacity-30"></i>
-                    <p class="text-sm">Busca un producto para comparar</p>
-                </div>`;
+                container.innerHTML = '<div class="text-center text-muted py-10"><i class="fas fa-scale-balanced text-3xl mb-2 opacity-30"></i><p class="text-sm">Busca un producto para comparar</p></div>';
                 return;
             }
 
-            // Buscar en todas las compras guardadas items que coincidan
-            const results = [];
-            savedPurchases.forEach(purchase => {
-                (purchase.items || []).forEach(item => {
-                    const match = (item.nombre || '').toLowerCase().includes(query) ||
-                                  (item.codigo || '').includes(query);
+            var results = [];
+            for (var i = 0; i < savedPurchases.length; i++) {
+                var purchase = savedPurchases[i];
+                var items = purchase.items || [];
+                for (var j = 0; j < items.length; j++) {
+                    var item = items[j];
+                    var match = (item.nombre || '').toLowerCase().indexOf(query) !== -1 || (item.codigo || '').indexOf(query) !== -1;
                     if (match) {
-                        results.push({
-                            supermercado: purchase.supermercado,
-                            moneda: purchase.moneda,
-                            precio: item.precio,
-                            fecha: purchase.fecha
-                        });
+                        results.push({ supermercado: purchase.supermercado, moneda: purchase.moneda, precio: item.precio, fecha: purchase.fecha });
                     }
-                });
-            });
+                }
+            }
 
             if (results.length === 0) {
-                container.innerHTML = `<div class="text-center text-muted py-10">
-                    <i class="fas fa-search text-3xl mb-2 opacity-30"></i>
-                    <p class="text-sm">No se encontraron registros para "${esc(query)}"</p>
-                    <p class="text-xs mt-1">El producto debe estar en al menos una compra guardada</p>
-                </div>`;
+                container.innerHTML = '<div class="text-center text-muted py-10"><i class="fas fa-search text-3xl mb-2 opacity-30"></i><p class="text-sm">No se encontraron registros para "' + esc(query) + '"</p><p class="text-xs mt-1">El producto debe estar en al menos una compra guardada</p></div>';
                 return;
             }
 
-            // Agrupar por supermercado y obtener el mejor precio
-            const byStore = {};
-            results.forEach(r => {
+            var byStore = {};
+            for (var k = 0; k < results.length; k++) {
+                var r = results[k];
                 if (!byStore[r.supermercado] || r.precio < byStore[r.supermercado].precio) {
                     byStore[r.supermercado] = { precio: r.precio, moneda: r.moneda, fecha: r.fecha };
                 }
-            });
+            }
 
-            // Ordenar por precio ascendente
-            const sorted = Object.entries(byStore).sort((a, b) => a[1].precio - b[1].precio);
-            const bestPrice = sorted[0][1].precio;
+            var sorted = Object.entries(byStore).sort(function(a, b) { return a[1].precio - b[1].precio; });
+            var bestPrice = sorted[0][1].precio;
 
-            container.innerHTML = `
-                <div class="bg-surface border border-line rounded-xl p-4 mb-3">
-                    <h3 class="font-bold text-led mb-1">${esc(query)}</h3>
-                    <p class="text-xs text-muted">${sorted.length} supermercado${sorted.length > 1 ? 's' : ''} encontrado${sorted.length > 1 ? 's' : ''}</p>
-                </div>
-                ${sorted.map(([store, data], i) => {
-                    const isBest = data.precio === bestPrice;
-                    return `<div class="rounded-xl p-3 border ${isBest ? 'border-led' : 'border-line'}" style="background:${isBest ? 'rgba(0,230,118,0.06)' : '#121e18'};">
-                        <div class="flex justify-between items-center">
-                            <div class="flex items-center gap-2">
-                                ${isBest ? '<span class="text-xs font-bold text-led bg-led bg-opacity-20 px-2 py-0.5 rounded-md" style="background:rgba(0,230,118,0.15);">MEJOR</span>' : ''}
-                                <span class="font-semibold text-sm">${esc(store)}</span>
-                            </div>
-                            <span class="font-bold ${isBest ? 'text-led' : 'text-fg-dim'}">${formatPrice(data.precio, data.moneda)}</span>
-                        </div>
-                        ${data.fecha ? `<p class="text-xs text-muted mt-1">Ultimo registro: ${new Date(data.fecha.seconds * 1000).toLocaleDateString('es-AR')}</p>` : ''}
-                    </div>`;
-                }).join('')}
-            `;
+            var html = '<div class="bg-surface border border-line rounded-xl p-4 mb-3"><h3 class="font-bold text-led mb-1">' + esc(query) + '</h3><p class="text-xs text-muted">' + sorted.length + ' supermercado' + (sorted.length > 1 ? 's' : '') + ' encontrado' + (sorted.length > 1 ? 's' : '') + '</p></div>';
+
+            for (var m = 0; m < sorted.length; m++) {
+                var store = sorted[m][0];
+                var data = sorted[m][1];
+                var isBest = data.precio === bestPrice;
+                var fechaStr = data.fecha ? new Date(data.fecha.seconds * 1000).toLocaleDateString('es-AR') : '';
+                html +=
+                    '<div class="rounded-xl p-3 border ' + (isBest ? 'border-led' : 'border-line') + '" style="background:' + (isBest ? 'rgba(0,230,118,0.06)' : '#121e18') + ';">' +
+                        '<div class="flex justify-between items-center">' +
+                            '<div class="flex items-center gap-2">' +
+                                (isBest ? '<span class="text-xs font-bold text-led px-2 py-0.5 rounded-md" style="background:rgba(0,230,118,0.15);">MEJOR</span>' : '') +
+                                '<span class="font-semibold text-sm">' + esc(store) + '</span>' +
+                            '</div>' +
+                            '<span class="font-bold ' + (isBest ? 'text-led' : 'text-fg-dim') + '">' + formatPrice(data.precio, data.moneda) + '</span>' +
+                        '</div>' +
+                        (fechaStr ? '<p class="text-xs text-muted mt-1">Ultimo registro: ' + fechaStr + '</p>' : '') +
+                    '</div>';
+            }
+            container.innerHTML = html;
         }
 
         // ===== INIT =====
